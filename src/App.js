@@ -6,13 +6,12 @@ import CampaignsSection from './components/CampaignsSection';
 
 function App() {
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col md:flex-row h-screen">
       <Sidebar />
       <div className="flex-1 flex flex-col bg-gray-100">
         <TopBar />
         <ActionCards />
         <CampaignsSection />
-        
       </div>
     </div>
   );

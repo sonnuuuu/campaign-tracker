@@ -6,11 +6,15 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 
 const CampaignsSection = () => {
   const [platform, setPlatform] = useState('Instagram');
-  const [setFilter] = useState('Reels');
+  const [filter, setFilter] = useState('Reels');
   const [activeTab, setActiveTab] = useState('All');
+  const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [underlinePosition, setUnderlinePosition] = useState({ width: 0, left: 0 });
 
   const tabsRef = useRef({});
+  const platformDropdownRef = useRef(null);
+  const filterDropdownRef = useRef(null);
 
   const platforms = [
     { name: 'Instagram', icon: <FaInstagram className="mr-2" /> },
@@ -93,10 +97,36 @@ const CampaignsSection = () => {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (platformDropdownRef.current && !platformDropdownRef.current.contains(event.target)) {
+        setIsPlatformDropdownOpen(false);
+      }
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
+        setIsFilterDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const togglePlatformDropdown = () => {
+    setIsPlatformDropdownOpen((prev) => !prev);
+    setIsFilterDropdownOpen(false);
+  };
+
+  const toggleFilterDropdown = () => {
+    setIsFilterDropdownOpen((prev) => !prev);
+    setIsPlatformDropdownOpen(false);
+  };
+
   return (
-    <div className="px-8">
-      <div className="flex justify-between items-center mb-7">
-        <div className="flex">
+    <div className="px-4 md:px-8">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-7">
+        <div className="flex items-center mb-4 md:mb-0">
           <CampaignIcon className="text-3xl mr-2" />
           <div>
             <h2 className="text-base font-semibold">Campaigns</h2>
@@ -104,49 +134,59 @@ const CampaignsSection = () => {
           </div>
         </div>
         <div className="flex space-x-4">
-          <div className="relative">
-            <button className="flex items-center px-2 py-2 border rounded-md shadow-sm focus:outline-none">
+          <div className="relative" ref={platformDropdownRef}>
+            <button
+              className="flex items-center px-2 py-2 border rounded-md shadow-sm focus:outline-none"
+              onClick={togglePlatformDropdown}
+            >
               {platforms.find((p) => p.name === platform).icon}
               {platform}
               <MdArrowDropDown className="ml-2" />
             </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg">
-              {platforms.map((p) => (
-                <button
-                  key={p.name}
-                  onClick={() => setPlatform(p.name)}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full"
-                >
-                  {p.icon}
-                  {p.name}
-                </button>
-              ))}
-            </div>
+            {isPlatformDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-10">
+                {platforms.map((p) => (
+                  <button
+                    key={p.name}
+                    onClick={() => { setPlatform(p.name); setIsPlatformDropdownOpen(false); }}
+                    className="flex items-center px-4 py-2 hover:bg-gray-100 w-full"
+                  >
+                    {p.icon}
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="relative">
-            <button className="flex items-center px-2 py-2 border rounded-md shadow-sm focus:outline-none">
+          <div className="relative" ref={filterDropdownRef}>
+            <button
+              className="flex items-center px-2 py-2 border rounded-md shadow-sm focus:outline-none"
+              onClick={toggleFilterDropdown}
+            >
               Filter by type
               <MdArrowDropDown className="ml-2" />
             </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg">
-              {filters.map((f) => (
-                <button
-                  key={f.name}
-                  onClick={() => setFilter(f.name)}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full"
-                >
-                  {f.icon}
-                  {f.name}
-                </button>
-              ))}
-            </div>
+            {isFilterDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-10">
+                {filters.map((f) => (
+                  <button
+                    key={f.name}
+                    onClick={() => { setFilter(f.name); setIsFilterDropdownOpen(false); }}
+                    className="flex items-center px-4 py-2 hover:bg-gray-100 w-full"
+                  >
+                    {f.icon}
+                    {f.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       <div className="relative mb-8">
-        <div className="flex items-center space-x-8">
+        <div className="flex items-center space-x-4 md:space-x-8 overflow-x-auto">
           {['All', 'Live', 'Pending', 'Ended'].map((tab) => (
             <div
               key={tab}
@@ -157,7 +197,7 @@ const CampaignsSection = () => {
               {tab}
               <span
                 className={`ml-2 w-6 h-6 flex items-center justify-center rounded-full ${
-                  tab === 'All' ? 'bg-gray-200 text-gray-600' : 
+                  tab === 'All' ? 'bg-gray-200 text-gray-600' :
                   tab === 'Live' ? 'bg-green-100 text-green-600' :
                   tab === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
                   'bg-red-100 text-red-600'
@@ -169,19 +209,18 @@ const CampaignsSection = () => {
           ))}
         </div>
         <div
-          className="absolute bottom-0 h-1 bg-black transition-all duration-300"
+          className="absolute bottom-[-2px] h-0.5 bg-black transition-all duration-300"
           style={{ width: underlinePosition.width, left: underlinePosition.left }}
         />
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {filteredCampaigns.map((campaign) => (
           <div key={campaign.id} className="border p-4 rounded-md shadow-sm">
             <img
               src={campaign.image}
               alt={campaign.title}
-              className="mb-4 rounded-md"
-              style={{ width: '80%', height: '160px', objectFit: 'cover' }}
+              className="mb-4 rounded-md w-full h-40 object-cover"
             />
             <div className="text-lg font-semibold">{campaign.title}</div>
             <div className="text-gray-500 flex items-center mt-2">
@@ -214,16 +253,15 @@ const CampaignsSection = () => {
                 <div className="font-semibold text-black">{campaign.views}</div>
               </div>
             </div>
-            <div className="flex justify-between items-center mt-4">
-              <div className={`px-2 py-1 rounded-md ${campaign.buttonColor}`}>{campaign.status}</div>
-              <button className={`flex items-center px-4 py-2 border rounded-md shadow-sm ${campaign.buttonStyle}`}>
+            <div className="flex justify-between items-center mt-2">
+              <span className={`font-semibold ${campaign.statusColor}`}>{campaign.status}</span>
+              <button className={`flex items-center px-2 py-1 text-sm rounded ${campaign.buttonStyle}`}>
                 {campaign.buttonText} <FiArrowUpRight className="ml-1" />
               </button>
             </div>
           </div>
         ))}
       </div>
-      <div className="mb-5"></div>
     </div>
   );
 };
